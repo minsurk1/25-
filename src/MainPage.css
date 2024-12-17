@@ -1,0 +1,30 @@
+.main-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+  }
+  
+  .main-page h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .main-page button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    background-color: #61dafb;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .main-page button:hover {
+    background-color: #4fa3d1;
+  }
+  
+  
