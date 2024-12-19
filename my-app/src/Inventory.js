@@ -2,83 +2,128 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Inventory.css';
 
-// 임의로 추가할 카드 목록 (예시)
-const availableCards = [
-  { image: 'card-a-image-url', name: '카드 A' },
-  { image: 'card-b-image-url', name: '카드 B' },
-  { image: 'card-c-image-url', name: '카드 C' },
-];
+const cardImages = {
+  fire: [
+    'assets/images/firetier1.png', 'assets/images/firetier2.png', 'assets/images/firetier3.png',
+    'assets/images/firetier4.png', 'assets/images/firetier5.png', 'assets/images/firetier6.png'
+  ],
+  water: [
+    'assets/images/watertier1.png', 'assets/images/watertier2.png', 'assets/images/watertier3.png',
+    'assets/images/watertier4.png', 'assets/images/watertier5.png', 'assets/images/watertier6.png'
+  ],
+  forest: [
+    'assets/images/foresttier1.png', 'assets/images/foresttier2.png', 'assets/images/foresttier3.png',
+    'assets/images/foresttier4.png', 'assets/images/foresttier5.png', 'assets/images/foresttier6.png'
+  ],
+  legend: [
+    'assets/images/legendtier1.png', 'assets/images/legendtier2.png', 'assets/images/legendtier3.png',
+    'assets/images/legendtier4.png', 'assets/images/legendtier5.png', 'assets/images/legendtier6.png'
+  ]
+};
 
-const Inventory = () => {
-  const [inventory, setInventory] = useState([
-    { image: 'card-image-url', name: '카드 A', isOpened: false },
-    { image: 'card-image-url', name: '카드 B', isOpened: false }
-  ]);
-  const [showModal, setShowModal] = useState(false); // 모달 표시 여부
-  const [newCard, setNewCard] = useState(null); // 랜덤으로 선택된 카드
+const Inventory = ({ inventory, setInventory, currency, setCurrency }) => {
+  const [openedCards, setOpenedCards] = useState({});
+  const [showConfirmButton, setShowConfirmButton] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(null);
 
-  // 카드팩 개봉 함수
-  const openCardPack = (index) => {
-    // 랜덤 카드 선택
-    const randomCard = availableCards[Math.floor(Math.random() * availableCards.length)];
-    setNewCard(randomCard);
+  const getRandomCard = (cardType) => {
+    let legendProbability;
+    switch (cardType) {
+      case 'B':
+        legendProbability = 0.01; // B급 카드팩 레전드카드 확률은 1%
+        break;
+      case 'A':
+        legendProbability = 0.03; // A급 카드팩 레전드카드 확률은 3%
+        break;
+      case 'S':
+        legendProbability = 0.05; // S급 카드팩 레전드카드 확률은 5%
+        break;
+      default:
+        legendProbability = 0.01; // 레전드카드 기본확률은 1%
+    }
 
-    // 카드팩 개봉 후 모달 표시
-    setShowModal(true);
-
-    // 개봉된 카드 업데이트
-    setInventory(prevInventory => {
-      const newInventory = [...prevInventory];
-      newInventory[index] = { ...newInventory[index], isOpened: true };
-      return newInventory;
-    });
+    const randomNumber = Math.random();
+    if (randomNumber < legendProbability) {
+      // Legend tier card
+      return cardImages.legend[Math.floor(Math.random() * cardImages.legend.length)];
+    } else {
+      // Regular tier card (fire, water, forest)
+      const tierTypes = ['fire', 'water', 'forest'];
+      const selectedTier = tierTypes[Math.floor(Math.random() * tierTypes.length)];
+      return cardImages[selectedTier][Math.floor(Math.random() * cardImages[selectedTier].length)];
+    }
   };
 
-  // 모달 닫기 함수
-  const closeModal = () => {
-    setShowModal(false);
-    setNewCard(null);
+  const openCardPack = (index) => {
+    const cardPack = inventory[index];
+    const randomImages = [];
+    for (let i = 0; i < 5; i++) {
+      randomImages.push(getRandomCard(cardPack.name.split(' ')[1])); 
+    }
+    setOpenedCards((prev) => ({
+      ...prev,
+      [index]: randomImages,
+    }));
+    setCurrentIndex(index);
+    setShowConfirmButton(true);
+  };
+
+  const handleConfirm = () => {
+    const updatedInventory = inventory.filter((_, idx) => idx !== currentIndex);
+    setInventory(updatedInventory);
+    setOpenedCards({});
+    setShowConfirmButton(false);
+    setCurrentIndex(null);
   };
 
   return (
     <div className="inventory-page">
+      <div className="header">
+        <div className="currency">보유 재화: {currency} G</div>
+        <Link to="/" className="main-button">메인화면</Link>
+      </div>
+      
       <h2>내 인벤토리</h2>
+      
       {inventory.length === 0 ? (
         <p>구매한 카드가 없습니다.</p>
       ) : (
         <div className="inventory-list">
           {inventory.map((card, index) => (
             <div key={index} className="inventory-item">
-              {card.isOpened ? (
-                <img src={card.image} alt={card.name} className="inventory-item-image" />
-              ) : (
-                <div className="card-pack">
-                  <p>카드팩</p>
-                  <button className="open-button" onClick={() => openCardPack(index)}>
+              {!openedCards[index] ? (
+                <>
+                  <img src={card.image} alt="카드팩" className="inventory-item-image" />
+                  <button 
+                    className="open-button" 
+                    onClick={() => openCardPack(index)}
+                  >
                     카드팩 개봉
                   </button>
+                </>
+              ) : (
+                <div className="card-pack-container opened">
+                  <div className="card-content">
+                    <div className="card-opened">
+                      {openedCards[index].map((image, i) => (
+                        <img key={i} src={image} alt={`카드 ${i}`} className="card-opened-image" />
+                      ))}
+                    </div>
+                    {showConfirmButton && (
+                      <button className="confirm-button" onClick={handleConfirm}>
+                        확인
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           ))}
         </div>
       )}
-
-      {/* 모달 창 */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>새로운 카드가 나왔습니다!</h3>
-            <img src={newCard.image} alt={newCard.name} className="modal-card-image" />
-            <p>{newCard.name}</p>
-            <button className="close-modal" onClick={closeModal}>닫기</button>
-          </div>
-        </div>
-      )}
-
-      <Link to="/" className="back-button">메인으로 돌아가기</Link>
     </div>
   );
 };
 
 export default Inventory;
+
