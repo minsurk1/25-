@@ -4,7 +4,7 @@ import './Inventory.css';
 
 const cardImages = {
   fire: [
-    'assets/images/firetier2.png', 'assets/images/firetier3.png',
+    'assets/images/firetier1.png', 'assets/images/firetier2.png', 'assets/images/firetier3.png',
     'assets/images/firetier4.png', 'assets/images/firetier5.png', 'assets/images/firetier6.png'
   ],
   water: [
